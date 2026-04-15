@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicio de Citas de Visa</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f5f5f5; 
+            margin: 0; 
+            padding: 0; 
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .content-wrapper { flex: 1; }
+
+        /* Clases para la navegación (ocultar/mostrar pantallas) */
+        .vista { display: none; }
+        .vista.activa { display: block; }
+
+        /* CABECERAS */
+        .header-top { 
+            background-color: #212529; color: white; padding: 12px 24px; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
+        .header-top h1 { margin: 0; font-size: 22px; font-weight: 400; }
+        .header-top p { margin: 2px 0 0 0; font-size: 11px; color: #adb5bd; }
+        
+        /* Cabecera específica para el Login */
+        .login-nav-links { font-size: 14px; text-align: right; margin-bottom: 5px; }
+        .login-nav-links a { color: #ced4da; text-decoration: none; margin-left: 15px;}
+        .login-menu-icon { font-size: 24px; cursor: pointer; color: white; margin-left: 15px;}
+        
+        .nav-links { display: flex; gap: 15px; font-size: 13px; align-items: center; }
+        .nav-links a { color: #ced4da; text-decoration: none; }
+        .nav-badge { border: 1px solid #6c757d; padding: 3px 8px; border-radius: 4px; font-size: 11px; color: #ced4da; }
+        
+        .sub-header { background-color: #3f51b5; color: white; padding: 12px 24px; font-size: 18px; }
+        .sub-header.menu-header { font-size: 14px; }
+        
+        .container { padding: 20px; max-width: 900px; margin: auto; }
+        
+        /* ========================================= */
+        /* ESTILOS DEL LOGIN                         */
+        /* ========================================= */
+        .login-card {
+            background: white; padding: 30px 24px; border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto;
+        }
+        .login-card h2 { margin-top: 0; font-size: 22px; color: #333; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; color: #555; margin-bottom: 8px; }
+        .form-group label span { color: #d32f2f; }
+        .form-control {
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px;
+            font-size: 16px; background-color: #e8f0fe; box-sizing: border-box;
+        }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; margin-bottom: 20px; color: #555;}
+        .checkbox-group input { margin-top: 3px; transform: scale(1.2);}
+        .checkbox-group a { color: #3f51b5; text-decoration: none; }
+        
+        .btn-login {
+            background-color: #43a047; color: white; border: none; padding: 12px 24px;
+            border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: 500;
+        }
+        .login-links { margin-top: 25px; display: flex; flex-direction: column; gap: 10px; font-size: 14px;}
+        .login-links a { color: #3f51b5; text-decoration: none; }
+
+        /* ========================================= */
+        /* ESTILOS DEL DASHBOARD PRINCIPAL           */
+        /* ========================================= */
+        .card { 
+            background: white; padding: 24px; border-radius: 4px; 
+            border-left: 5px solid #43a047; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; 
+        }
+        .status-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 20px; border-bottom: 1px solid #e0e0e0; padding-bottom: 15px; 
+        }
+        .status-left { display: flex; align-items: center; gap: 12px; }
+        .status-left .icon { 
+            background: #43a047; color: white; border-radius: 50%; width: 28px; height: 28px; 
+            display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px;
+        }
+        .status-text span { display: block; font-size: 12px; color: #43a047; font-weight: bold; text-transform: uppercase;}
+        .status-text strong { font-size: 18px; color: #333;}
+        
+        .btn-continue { 
+            background-color: #43a047; color: white; border: none; padding: 8px 16px; 
+            border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;
+        }
+
+        .appointment-info { 
+            display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; 
+            background-color: #fafafa; padding: 15px; border-radius: 4px;
+        }
+        .info-row { display: flex; gap: 12px; font-size: 14px; color: #333; line-height: 1.4; }
+        .info-row .icon-svg { margin-top: 2px; }
+        .info-row a { color: #3f51b5; text-decoration: none; cursor: pointer;}
+        .info-row a:hover { text-decoration: underline; }
+        
+        .table-container { width: 100%; overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; color: #333; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+        th { font-weight: bold; color: #555; }
+        .estado-link { color: #3f51b5; text-decoration: none; }
+        
+        .ivr-account { text-align: right; font-size: 13px; margin-top: 24px; color: #333; }
+        
+        /* ========================================= */
+        /* ESTILOS PANTALLAS DETALLES Y MENÚ         */
+        /* ========================================= */
+        .detalle-header { background-color: #3f51b5; color: white; padding: 15px 24px; font-size: 16px; }
+        .detalle-content { background: white; padding: 30px 24px; min-height: 300px; }
+        .detalle-item { margin-bottom: 20px; }
+        .detalle-item strong { display: block; color: #555; margin-bottom: 5px; font-size: 14px; }
+        .detalle-item p { margin: 0; font-size: 16px; color: #222; font-weight: 500; }
+        
+        .menu-title { font-size: 18px; color: #333; margin: 20px 24px 10px; font-weight: bold;}
+        .menu-list { display: flex; flex-direction: column; gap: 10px; padding: 10px 24px; }
+        .menu-item { 
+            background: white; padding: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+            display: flex; align-items: center; gap: 15px; font-size: 14px; color: #444; cursor: pointer;
+        }
+        .menu-item.premium { padding: 0; }
+        .premium-icon { background: #7e57c2; color: white; width: 60px; height: 55px; display: flex; align-items: center; justify-content: center; border-radius: 4px 0 0 4px; }
+        .menu-item.premium div:last-child { padding: 15px; }
+        .menu-item.gris { background: #eeeeee; }
+        
+        .btn-regresar { 
+            display: block; width: 120px; margin: 30px auto; padding: 10px; 
+            background: white; border: 1px solid #ccc; text-align: center; 
+            border-radius: 4px; cursor: pointer; font-size: 14px; color: #555;
+        }
+
+        /* ========================================= */
+        /* ESTILOS DEL FOOTER GLOBAL                 */
+        /* ========================================= */
+        .user-account-pre-footer { 
+            text-align: center; font-size: 13px; margin-top: 40px; margin-bottom: 40px; color: #555; 
+        }
+        
+        .global-footer {
+            background-color: #333333; color: #dddddd; padding: 30px 24px; font-size: 14px; line-height: 1.6;
+        }
+        .footer-section { margin-bottom: 30px; }
+        .footer-section h3 { color: white; font-size: 18px; margin-bottom: 15px; font-weight: bold; }
+        .footer-section ul { list-style: none; padding: 0; margin: 0; }
+        .footer-section ul li { margin-bottom: 12px; }
+        .footer-section a { color: #dddddd; text-decoration: none; }
+        .footer-section a:hover { text-decoration: underline; }
+        
+        .footer-anuncio-item { margin-bottom: 20px; }
+        .footer-anuncio-item strong { display: block; color: white; font-size: 13px; margin-bottom: 5px; }
+        .footer-anuncio-item a { color: #dddddd; text-decoration: none; font-size: 14px; display: block; margin-bottom: 10px;}
+        .footer-anuncio-item a:hover { text-decoration: underline; }
+
+        .footer-bottom {
+            border-top: 1px solid #555; padding-top: 20px; margin-top: 20px;
+            display: flex; flex-direction: column; gap: 15px; font-size: 12px; color: #aaa;
+        }
+        .footer-bottom-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .btn-cambiar-pais { background: white; color: #333; border: none; padding: 10px 20px; border-radius: 4px; font-size: 14px; cursor: pointer; }
+        
+        .toggle-iv-niv { display: flex; background: #222; border-radius: 4px; overflow: hidden; }
+        .toggle-iv-niv span { padding: 5px 10px; font-size: 12px; }
+        .toggle-iv-niv span.active { background: #3f51b5; color: white; }
+        
+        .social-icons { display: flex; gap: 10px; font-size: 24px; }
+        .social-icons span { color: #3b5998; background: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: bold;}
+        .social-icons span.tw { color: #00acee; }
+    </style>
+</head>
+<body>
+
+    <div class="content-wrapper">
+        
+        <div id="vista-login" class="vista activa">
+            <div class="header-top" style="padding-bottom: 5px;">
+                <div>
+                    <h1>COLOMBIA</h1>
+                    <p>Official U.S. Department of State Visa Appointment Service</p>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    <div class="login-nav-links">
+                        <a href="#">Idioma ▼</a>
+                    </div>
+                    <div class="login-menu-icon">≡</div>
+                </div>
+            </div>
+            <div class="sub-header" style="font-size: 16px; font-weight: normal; padding: 15px 24px;">
+                Iniciar sesión o crear una cuenta
+            </div>
+
+            <div class="container">
+                <div class="login-card">
+                    <h2>Iniciar sesión</h2>
+                    
+                    <div class="form-group">
+                        <label>Correo electrónico <span>*</span></label>
+                        <input type="email" class="form-control" value="juanpabloisaziga1224@gmail.com" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" class="form-control" value="...................." readonly>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" checked disabled>
+                        <div>He leído y comprendido el <br><a href="#">Política de privacidad y los Términos de uso 🔗</a></div>
+                    </div>
+                    
+                    <button class="btn-login" onclick="navegarA('vista-principal')">Iniciar sesión</button>
+                    
+                    <div class="login-links">
+                        <a href="#">¿Ha olvidado la contraseña?</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="vista-principal" class="vista">
+            <div class="header-top">
+                <div>
+                    <h1>COLOMBIA</h1>
+                    <p>Official U.S. Department of State Visa Appointment Service</p>
+                </div>
+                <div class="nav-links">
+                    <span class="nav-badge">Non Immigrant Visa</span>
+                    <a href="#">Inicio</a>
+                    <a href="#">Idioma ▼</a>
+                    <a href="#">Acciones ▼</a>
+                </div>
+            </div>
+            
+            <div class="sub-header">Grupos</div>
+            <div class="container">
+                <div class="card">
+                    <div class="status-header">
+                        <div class="status-left">
+                            <svg viewBox="0 0 512 512" width="28" height="28" fill="#43a047"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
+                            <div class="status-text">
+                                <span>Estado actual</span>
+                                <strong>Cita Asistir</strong>
+                            </div>
+                        </div>
+                        <button class="btn-continue" onclick="navegarA('vista-menu')">Continuar</button>
+                    </div>
+
+                    <div class="appointment-info">
+                        <div class="info-row">
+                            <div class="icon-svg">
+                                <svg viewBox="0 0 448 512" width="16" height="16" fill="#43a047"><path d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v16 48V448c0 35.3 28.7 64 64 64H384c35.3 64 64-35.3 64-64V192 144 128c0-35.3-28.7-64-64-64H344V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24zM48 192H400V448c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V192z"/></svg>
+                            </div>
+                            <div><strong>Cita Consular:</strong> 20 abril, 2026, 09:30 Bogota Hora Local at Bogota — <a onclick="navegarA('vista-llegar-consular')">📍 Cómo llegar</a></div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="icon-svg">
+                                <svg viewBox="0 0 448 512" width="16" height="16" fill="#43a047"><path d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v16 48V448c0 35.3 28.7 64 64 64H384c35.3 64 64-35.3 64-64V192 144 128c0-35.3-28.7-64-64-64H344V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24zM48 192H400V448c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V192z"/></svg>
+                            </div>
+                            <div><strong>Cita CAS:</strong> 15 abril, 2026, 16:30 BOGOTA Hora Local at Bogota ASC — <a onclick="navegarA('vista-llegar-cas')">📍 Cómo llegar</a></div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="icon-svg">
+                                <svg viewBox="0 0 640 512" width="18" height="18" fill="#43a047"><path d="M64 32C28.7 32 0 60.7 0 96V304v80 16c0 44.2 35.8 80 80 80c26.2 0 49.4-12.6 64-32c14.6 19.4 37.8 32 64 32c44.2 0 80-35.8 80-80c0-5.5-.6-10.8-1.6-16H416h33.6c-1 5.2-1.6 10.5-1.6 16c0 44.2 35.8 80 80 80s80-35.8 80-80c0-5.5-.6-10.8-1.6-16H608c17.7 0 32-14.3 32-32V288c0-21.4-13-40.7-32.4-47.2L444.3 186.2C434.8 183.1 424.6 181.5 414.4 181.5H384V96c0-35.3-28.7-64-64-64H64zM208 384c0 17.7-14.3 32-32 32s-32-14.3-32-32s14.3-32 32-32s32 14.3 32 32zm320 32c-17.7 0-32-14.3-32-32s14.3-32 32-32s32 14.3 32 32s-14.3 32-32 32zM384 229.5v82.5H464c17.7 0 32-14.3 32-32c0-8.8-7.2-16-16-16H384z"/></svg>
+                            </div>
+                            <div><strong>Ubicación de entrega de documentos</strong> BOGOTA ASC – CALLE 26 # 92 - 32, Connecta - Gold 4, Primer Piso Lado Occidental, BOGOTA, D.C BOGOTA 111071, CO</div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre del<br>Solicitante</th>
+                                    <th>Pasaporte</th>
+                                    <th>DS-160</th>
+                                    <th>Tipo de Visa</th>
+                                    <th>Estado</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Juan Pablo Isaziga<br>Castrillon</td>
+                                    <td>BA939701</td>
+                                    <td>AA00F1Y7UB</td>
+                                    <td>B1/B2 Negocios y turismo<br>(visitante temporal)</td>
+                                    <td><a href="#" class="estado-link">Verificar estado de<br>DS-160 🔗</a></td>
+                                    <td>⚙️ ▼</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="ivr-account">
+                        Número de identificación de cuenta IVR: <strong>81963603</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="user-account-pre-footer">
+                <strong>Cuenta de usuario:</strong> Juan Pablo Isaziga Castrillon, juanpabloisaziga1224@gmail.com
+            </div>
+        </div>
+
+        <div id="vista-llegar-consular" class="vista">
+            <div class="header-top">
+                <div><h1>COLOMBIA</h1></div>
+            </div>
+            <div class="detalle-header">Cómo llegar a la cita Consular</div>
+            <div class="detalle-content">
+                <div class="detalle-item"><strong>Fecha</strong><p>20 April, 2026</p></div>
+                <div class="detalle-item"><strong>Hora</strong><p>09:30 -05</p></div>
+                <div class="detalle-item"><strong>Dirección</strong><p>Calle 24 Bis No. 48-50<br>Bogota, D.C.<br>Colombia</p></div>
+                <div class="btn-regresar" onclick="navegarA('vista-principal')">Regresar</div>
+            </div>
+        </div>
+
+        <div id="vista-llegar-cas" class="vista">
+            <div class="header-top">
+                <div><h1>COLOMBIA</h1></div>
+            </div>
+            <div class="detalle-header">Cómo llegar a la cita CAS</div>
+            <div class="detalle-content">
+                <div class="detalle-item"><strong>Fecha</strong><p>15 April, 2026</p></div>
+                <div class="detalle-item"><strong>Hora</strong><p>16:30 -05</p></div>
+                <div class="detalle-item"><strong>Dirección</strong><p>CALLE 26 # 92 - 32, Connecta - Gold 4,<br>Primer Piso Lado Occidental<br>BOGOTA, D.C, BOGOTA,<br>111071<br>Colombia</p></div>
+                <div class="btn-regresar" onclick="navegarA('vista-principal')">Regresar</div>
+            </div>
+        </div>
+
+        <div id="vista-menu" class="vista">
+            <div class="header-top">
+                <div>
+                    <h1>COLOMBIA</h1>
+                </div>
+            </div>
+            <div class="sub-header menu-header">Juan Pablo Isaziga Castrillon</div>
+            <div class="menu-title">Tomar medidas para este grupo de solicitantes:</div>
+            
+            <div class="menu-list">
+                <div class="menu-item premium">
+                    <div class="premium-icon">
+                        <svg viewBox="0 0 512 512" width="24" height="24" fill="white"><path d="M482.9 192L416 32H96L29.1 192 256 464 482.9 192zM437.8 192H348L284 64H402.6L437.8 192zM302.2 192H209.8L256 94.6 302.2 192zM164 192H74.2L109.4 64H228L164 192zM256 409.2L116.8 224H395.2L256 409.2z"/></svg>
+                    </div>
+                    <div>Solicitud de entrega premium</div>
+                </div>
+                
+                <div class="menu-item">
+                    <svg viewBox="0 0 512 512" width="16" height="16" fill="#444"><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 80c35.3 0 64-28.7 64-64V224c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v144c0 35.3 28.7 64 64 64h64v80c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V432h64zM432 248a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg>
+                    Imprimir instrucciones
+                </div>
+                
+                <div class="menu-item">
+                    <svg viewBox="0 0 512 512" width="16" height="16" fill="#444"><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48H48zM0 176V384c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V176L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z"/></svg>
+                    Instrucciones Correo Electrónico
+                </div>
+                
+                <div class="menu-item">
+                    <svg viewBox="0 0 448 512" width="16" height="16" fill="#444"><path d="M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v16 48V448c0 35.3 28.7 64 64 64H384c35.3 64 64-35.3 64-64V192 144 128c0-35.3-28.7-64-64-64H344V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24zM48 192H400V448c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V192zM112 288c-17.7 0-32 14.3-32 32v32c0 17.7 14.3 32 32 32h32c17.7 0 32-14.3 32-32v-32c0-17.7-14.3-32-32-32H112z"/></svg>
+                    Reprogramar cita
+                </div>
+                
+                <div class="menu-item">
+                    <svg viewBox="0 0 640 512" width="16" height="16" fill="#444"><path d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM504 312V248H440c-13.3 0-24-10.7-24-24s10.7-24 24-24h64V136c0-13.3 10.7-24 24-24s24 10.7 24 24v64h64c13.3 0 24 10.7 24 24s-10.7 24-24 24H552v64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"/></svg>
+                    Añadir solicitante
+                </div>
+                
+                <div class="menu-item">
+                    <svg viewBox="0 0 640 512" width="16" height="16" fill="#444"><path d="M64 32C28.7 32 0 60.7 0 96V304v80 16c0 44.2 35.8 80 80 80c26.2 0 49.4-12.6 64-32c14.6 19.4 37.8 32 64 32c44.2 0 80-35.8 80-80c0-5.5-.6-10.8-1.6-16H416h33.6c-1 5.2-1.6 10.5-1.6 16c0 44.2 35.8 80 80 80s80-35.8 80-80c0-5.5-.6-10.8-1.6-16H608c17.7 0 32-14.3 32-32V288c0-21.4-13-40.7-32.4-47.2L444.3 186.2C434.8 183.1 424.6 181.5 414.4 181.5H384V96c0-35.3-28.7-64-64-64H64zM208 384c0 17.7-14.3 32-32 32s-32-14.3-32-32s14.3-32 32-32s32 14.3 32 32zm320 32c-17.7 0-32-14.3-32-32s14.3-32 32-32s32 14.3 32 32s-14.3 32-32 32zM384 229.5v82.5H464c17.7 0 32-14.3 32-32c0-8.8-7.2-16-16-16H384z"/></svg>
+                    Actualizar lugar de entrega
+                </div>
+                
+                <div class="menu-item gris">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" width="16" height="16" fill="#444"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zM140.4 140.4c28.3-28.3 64-45.7 101.4-51.1l-25.9 77.8L121 216c-5.4-37.4 12-73.1 19.4-75.6zm72.7 149.2l61.7-41.1 61.7 41.1-23.6 72.5H189.5l-23.6-72.5zm64.9 146.4c-39.7 0-76.3-15-104.1-39.9l75.4-54.3h57.4l75.4 54.3c-27.8 24.9-64.4 39.9-104.1 39.9zM424 256c0 37.1-12.2 71.3-32.6 98.7L316 300.4l25.9-77.8 95-48.9c4.3 26.1 7.1 53.4 7.1 82.3zm-101.5-166.7c37.4 5.4 73.1 22.8 101.4 51.1 7.4 2.5 24.8 38.2 19.4 75.6L348.4 167l-25.9-77.8zM72 256c0-28.9 2.8-56.2 7.1-82.3l95 48.9 25.9 77.8-75.4 54.3C104.2 327.3 92 293.1 92 256h-20z"/></svg>
+                    Portador de entrada FIFA World Cup 2026™
+                </div>
+                
+                <div class="menu-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="#444"><path d="M498.1 5.6c10.1 7 15.4 19.1 13.5 31.2l-64 416c-1.5 9.7-7.4 18.2-16 23s-18.9 5.4-28 1.6L284 427.7l-68.5 74.1c-8.9 9.7-22.9 12.9-35.2 8.1S160 493.2 160 480V396.4c0-4 1.5-7.8 4.2-10.7L331.8 202.8c5.8-6.3 5.6-16-.4-22s-15.7-6.4-22-.7L106 360.8 17.7 316.6C7.1 311.3 .3 300.7 0 288.9s5.9-22.8 16.1-28.7l448-256c10.7-6.1 23.9-5.5 34 1.4z"/></svg>
+                    Solicitar Cita Emergencia
+                </div>
+                
+                <div class="menu-item">
+                    <svg viewBox="0 0 288 512" width="14" height="16" fill="#444"><path d="M209.2 233.4l-108-31.6C88.7 198.2 80 186.5 80 173.5c0-16.3 13.2-29.5 29.5-29.5h66.3c12.2 0 24.2 3.7 34.2 10.5 6.1 4.1 14.3 3.1 19.5-2l34.8-34c7.1-6.9 6.1-18.4-1.8-24.5C238 74.8 207.4 64.1 176 64V16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v48h-2.5C73.2 64 40 96.6 40 137.5c0 43.1 28 78.7 67.9 90.5l108 31.6c12.4 3.6 21.1 15.3 21.1 28.3 0 16.3-13.2 29.5-29.5 29.5h-66.3c-12.2 0-24.2-3.7-34.2-10.5-6.1-4.1-14.3-3.1-19.5 2l-34.8 34c-7.1 6.9-6.1 18.4 1.8 24.5 24.5 19.2 55.1 29.9 86.5 30v48c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-48.2c36.6-.3 71.7-33.2 71.7-74.3 0-43.1-28-78.7-67.9-90.5z"/></svg>
+                    Ver recibo de pago
+                </div>
+            </div>
+            <div class="btn-regresar" style="margin-right: 24px; float: right;" onclick="navegarA('vista-principal')">Regresar</div>
+            <div style="clear: both;"></div>
+        </div>
+        
+    </div> <footer class="global-footer">
+        <div class="footer-section">
+            <h3>Visa para no inmigrantes</h3>
+            <ul>
+                <li><a href="#">Cómo solicitar una visa / Descripción general de visas</a></li>
+                <li><a href="#">Categorías de visas para no inmigrantes</a></li>
+                <li><a href="#">Cómo renovar mi visa</a></li>
+                <li><a href="#">Aranceles de visa</a></li>
+                <li><a href="#">Tiempos de espera para solicitar una visa</a></li>
+                <li><a href="#">Documentación requerida</a></li>
+                <li><a href="#">Servicio de correo</a></li>
+                <li><a href="#">Procesamiento de Grupo a Empresas, agencias de viajes y otras organizaciones</a></li>
+                <li><a href="#">Información de la Sección Consular</a></li>
+                <li><a href="#">Información del CAS</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>Ayuda</h3>
+            <ul>
+                <li><a href="#">Visas para inmigrantes</a></li>
+                <li><a href="#">Residentes legales permanentes que retornan (LPR)</a></li>
+                <li><a href="#">Visa Especial (diplomáticos, OTAN, etc.)</a></li>
+                <li><a href="#">Preguntas frecuentes</a></li>
+                <li><a href="#">Contáctenos</a></li>
+                <li><a href="#">Política de privacidad y los Términos de uso</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h3>Anuncios</h3>
+            
+            <div class="footer-anuncio-item">
+                <a href="https://ais.usvisa-info.com/es-co/niv/information/announcements#1045-expanded_visa_categories_for_online_presence_review_vetting_20260325173244" target="_blank">
+                    Categorías de visa ampliadas para verificación mediante revisión de presencia en línea
+                </a>
+            </div>
+            
+            <div class="footer-anuncio-item">
+                <a href="https://www.state.gov/fifa-world-cup-26-visas-pass-faq" target="_blank">
+                    Información de citas para solicitantes de visa que tienen boletos para asistir a FIFA World Cup 2026™ 🔗
+                </a>
+            </div>
+
+            <div class="footer-anuncio-item">
+                <a href="https://ais.usvisa-info.com/es-co/niv/information/announcements#1036-immigrant_visa_processing_updates_for_nationalities_at_high_risk_of_public_benefits_usage_20260115133415" target="_blank">
+                    Anuncio sobre el procesamiento de visas de inmigrante para ciudadanos de países con alto riesgo de uso de beneficios públicos de Estados Unidos
+                </a>
+            </div>
+            
+            <div class="footer-anuncio-item">
+                <a href="https://ais.usvisa-info.com/es-co/niv/information/announcements#1031-diversity_visa_issuance_pause_20251224124721" target="_blank">
+                    Suspensión de la Emisión de Visas de Diversidad
+                </a>
+            </div>
+            
+            <div class="footer-anuncio-item">
+                <a href="https://ais.usvisa-info.com/es-co/niv/information/announcements#1030-presidential_proclamation_10998_on_restricting_and_limiting_the_entry_of_foreign_nationals_20251222135636" target="_blank">
+                    Proclamación Presidencial 10998 sobre la Restricción y Limitación del Ingreso de Ciudadanos Extranjeros
+                </a>
+            </div>
+            
+            <div class="footer-anuncio-item">
+                <a href="https://ais.usvisa-info.com/es-co/niv/information/announcements#1027-pause_of_visa_issuances_to_afghan_nationals_20251208162740" target="_blank">
+                    Suspensión de la expedición de visados a nacionales afganos
+                </a>
+            </div>
+
+            <div class="footer-anuncio-item">
+                <a href="https://ais.usvisa-info.com/es-co/niv/information/announcements#1013-adjudicating_iv_applicants_in_their_country_of_residence_20250829160858" target="_blank">
+                    Adjudicación de solicitantes de visa de inmigrante en su país de residencia
+                </a>
+            </div>
+
+            <div class="footer-anuncio-item">
+                <a href="https://ais.usvisa-info.com/es-co/niv/information/announcements#1018-restriction_on_entry_of_certain_nonimmigrant_workers_20250922125819" target="_blank">
+                    Restricción de entrada a los Estados Unidos de ciertos trabajadores no inmigrantes
+                </a>
+            </div>
+            
+            <div class="footer-anuncio-item">
+                <a href="https://ais.usvisa-info.com/es-co/niv/information/announcements#1007-immediate_suspension_of_interview_waiver_for_certain_nationalities_20250807173604" target="_blank">
+                    Suspensión Inmediata de Exención de Entrevista para ciertas Nacionalidades
+                </a>
+            </div>
+            
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-bottom-controls">
+                <button class="btn-cambiar-pais">Cambiar país</button>
+                <div class="toggle-iv-niv">
+                    <span>IV</span>
+                    <span class="active">NIV</span>
+                </div>
+            </div>
+            <div>
+                Impulsado por Yatri - El Servicio Oficial del Sistema de Información y Citas de Visas para la Embajada de los Estados Unidos en Colombia<br>
+                © Copyright 2026 GDIT
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                <div style="background: white; color: #0056b3; font-weight: bold; font-size: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; width: 100px; text-align: center;">
+                    VIKINGCLOUD<br>TRUSTED<br>COMMERCE
+                </div>
+                <div class="social-icons">
+                    <span>f</span>
+                    <span class="tw">t</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function navegarA(idVistaOcultar) {
+            // Ocultar todas las vistas
+            let vistas = document.querySelectorAll('.vista');
+            vistas.forEach(function(vista) {
+                vista.classList.remove('activa');
+            });
+
+            // Mostrar la vista seleccionada
+            document.getElementById(idVistaOcultar).classList.add('activa');
+            
+            // Hacer scroll hacia arriba
+            window.scrollTo(0, 0);
+        }
+    </script>
+
+</body>
+</html>
